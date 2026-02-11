@@ -21,11 +21,14 @@ def _resolve_output(input_path, suffix, output_dir, original_format=None):
     """Build an output path by appending *suffix* before the extension.
     
     Args:
-        input_path: Original input file path
-        suffix: Suffix to add to the base name
-        output_dir: Output directory
-        original_format: Original audio format extension (e.g., 'mp3', 'flac').
-                        If None, defaults to 'wav'.
+        input_path (str): Original input file path
+        suffix (str): Suffix to add to the base name
+        output_dir (str): Output directory
+        original_format (str, optional): Original audio format extension (e.g., 'mp3', 'flac').
+                                        If None, defaults to 'wav'.
+    
+    Returns:
+        str: Output file path
     """
     base = os.path.splitext(os.path.basename(input_path))[0]
     ext = original_format if original_format else "wav"
@@ -44,10 +47,10 @@ def _write_output(path, channels, sample_rate, target_format):
     """Write audio output, converting to target format if needed.
     
     Args:
-        path: Output file path
-        channels: Audio channel data
-        sample_rate: Sample rate
-        target_format: Target format extension (e.g., 'mp3', 'flac', 'wav')
+        path (str): Output file path
+        channels (list): Audio channel data
+        sample_rate (int): Sample rate in Hz
+        target_format (str): Target format extension (e.g., 'mp3', 'flac', 'wav')
     """
     if target_format.lower() == 'wav':
         # Direct WAV write
@@ -68,8 +71,13 @@ def _load_mono(path):
     """Load an audio file and return (mono_samples, sample_rate, format, temp_wav_path).
     
     Automatically converts non-WAV formats to WAV using ffmpeg.
-    Returns a tuple of (mono_samples, sample_rate, original_format, temp_wav_path).
-    If temp_wav_path is not None, caller should clean it up after use.
+    
+    Args:
+        path (str): Path to the input audio file
+    
+    Returns:
+        tuple: (mono_samples, sample_rate, original_format, temp_wav_path)
+               If temp_wav_path is not None, caller should clean it up after use.
     """
     # Detect the audio format
     audio_format = detect_audio_format(path)

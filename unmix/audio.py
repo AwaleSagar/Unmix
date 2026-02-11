@@ -98,8 +98,12 @@ def to_mono(channels):
 def detect_audio_format(path):
     """Detect the audio format of a file.
     
-    Returns the file extension (e.g., 'wav', 'mp3', 'flac') or None if detection fails.
-    First tries file extension, then falls back to ffprobe if available.
+    Args:
+        path (str): Path to the audio file
+    
+    Returns:
+        str or None: File extension (e.g., 'wav', 'mp3', 'flac') or None if detection fails.
+                     First tries file extension, then falls back to ffprobe if available.
     """
     # Try file extension first
     ext = os.path.splitext(path)[1].lower().lstrip('.')
@@ -126,11 +130,11 @@ def convert_to_wav(input_path, output_path=None):
     """Convert an audio file to WAV format using ffmpeg.
     
     Args:
-        input_path: Path to the input audio file
-        output_path: Optional path for the output WAV file. If None, creates a temp file.
+        input_path (str): Path to the input audio file
+        output_path (str, optional): Path for the output WAV file. If None, creates a temp file.
     
     Returns:
-        Path to the converted WAV file
+        str: Path to the converted WAV file
     
     Raises:
         RuntimeError: If ffmpeg is not available or conversion fails
@@ -159,9 +163,9 @@ def convert_from_wav(wav_path, output_path, target_format=None):
     """Convert a WAV file to another audio format using ffmpeg.
     
     Args:
-        wav_path: Path to the input WAV file
-        output_path: Path for the output file
-        target_format: Optional target format. If None, inferred from output_path extension.
+        wav_path (str): Path to the input WAV file
+        output_path (str): Path for the output file
+        target_format (str, optional): Target format. If None, inferred from output_path extension.
     
     Raises:
         RuntimeError: If ffmpeg is not available or conversion fails
