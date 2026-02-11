@@ -1,6 +1,10 @@
 """WAV audio I/O using the standard-library ``wave`` module."""
 
+import json
+import os
 import struct
+import subprocess
+import tempfile
 import wave
 
 
@@ -89,3 +93,95 @@ def to_mono(channels):
     n = len(channels[0])
     k = len(channels)
     return [sum(channels[ch][i] for ch in range(k)) / k for i in range(n)]
+
+
+def detect_audio_format(path):
+    """Detect the audio format of a file.
+    
+    Args:
+        path (str): Path to the audio file
+    
+    Returns:
+        str or None: File extension (e.g., 'wav', 'mp3', 'flac') or None if detection fails.
+                     First tries file extension, then falls back to ffprobe if available.
+    """
+    # Try file extension first
+    ext = os.path.splitext(path)[1].lower().lstrip('.')
+    if ext:
+        return ext
+    
+    # Fall back to ffprobe if extension is missing
+    try:
+        result = subprocess.run(
+            ['ffprobe', '-v', 'quiet', '-print_format', 'json', '-show_format', path],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        # Try to extract format from ffprobe output
+        data = json.loads(result.stdout)
+        format_name = data.get('format', {}).get('format_name', '').split(',')[0]
+        return format_name if format_name else None
+    except (subprocess.CalledProcessError, FileNotFoundError, json.JSONDecodeError, KeyError):
+        return None
+
+
+def convert_to_wav(input_path, output_path=None):
+    """Convert an audio file to WAV format using ffmpeg.
+    
+    Args:
+        input_path (str): Path to the input audio file
+        output_path (str, optional): Path for the output WAV file. If None, creates a temp file.
+    
+    Returns:
+        str: Path to the converted WAV file
+    
+    Raises:
+        RuntimeError: If ffmpeg is not available or conversion fails
+    """
+    if output_path is None:
+        # Create a temporary file for the WAV
+        fd, output_path = tempfile.mkstemp(suffix='.wav')
+        os.close(fd)
+    
+    try:
+        # Use ffmpeg to convert to WAV
+        subprocess.run(
+            ['ffmpeg', '-y', '-i', input_path, '-acodec', 'pcm_s16le', output_path],
+            capture_output=True,
+            check=True
+        )
+        return output_path
+    except FileNotFoundError:
+        raise RuntimeError("ffmpeg is not installed or not in PATH")
+    except subprocess.CalledProcessError as e:
+        stderr_msg = e.stderr.decode('utf-8', errors='replace') if e.stderr else 'Unknown error'
+        raise RuntimeError(f"Failed to convert {input_path} to WAV: {stderr_msg}")
+
+
+def convert_from_wav(wav_path, output_path, target_format=None):
+    """Convert a WAV file to another audio format using ffmpeg.
+    
+    Args:
+        wav_path (str): Path to the input WAV file
+        output_path (str): Path for the output file
+        target_format (str, optional): Target format. If None, inferred from output_path extension.
+    
+    Raises:
+        RuntimeError: If ffmpeg is not available or conversion fails
+    """
+    try:
+        cmd = ['ffmpeg', '-y', '-i', wav_path]
+        
+        # Add format-specific options if needed
+        if target_format:
+            cmd.extend(['-f', target_format])
+        
+        cmd.append(output_path)
+        
+        subprocess.run(cmd, capture_output=True, check=True)
+    except FileNotFoundError:
+        raise RuntimeError("ffmpeg is not installed or not in PATH")
+    except subprocess.CalledProcessError as e:
+        stderr_msg = e.stderr.decode('utf-8', errors='replace') if e.stderr else 'Unknown error'
+        raise RuntimeError(f"Failed to convert WAV to {target_format or 'target format'}: {stderr_msg}")
