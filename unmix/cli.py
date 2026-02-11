@@ -54,7 +54,8 @@ def _write_output(path, channels, sample_rate, target_format):
         write_wav(path, channels, sample_rate)
     else:
         # Write to temporary WAV, then convert
-        temp_wav = tempfile.mktemp(suffix='.wav')
+        fd, temp_wav = tempfile.mkstemp(suffix='.wav')
+        os.close(fd)
         try:
             write_wav(temp_wav, channels, sample_rate)
             convert_from_wav(temp_wav, path, target_format)

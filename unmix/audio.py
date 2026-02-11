@@ -1,5 +1,6 @@
 """WAV audio I/O using the standard-library ``wave`` module."""
 
+import json
 import os
 import struct
 import subprocess
@@ -114,11 +115,10 @@ def detect_audio_format(path):
             check=True
         )
         # Try to extract format from ffprobe output
-        import json
         data = json.loads(result.stdout)
         format_name = data.get('format', {}).get('format_name', '').split(',')[0]
         return format_name if format_name else None
-    except (subprocess.CalledProcessError, FileNotFoundError, KeyError, ValueError):
+    except (subprocess.CalledProcessError, FileNotFoundError, json.JSONDecodeError, KeyError):
         return None
 
 
@@ -151,7 +151,8 @@ def convert_to_wav(input_path, output_path=None):
     except FileNotFoundError:
         raise RuntimeError("ffmpeg is not installed or not in PATH")
     except subprocess.CalledProcessError as e:
-        raise RuntimeError(f"Failed to convert {input_path} to WAV: {e.stderr.decode()}")
+        stderr_msg = e.stderr.decode('utf-8', errors='replace') if e.stderr else 'Unknown error'
+        raise RuntimeError(f"Failed to convert {input_path} to WAV: {stderr_msg}")
 
 
 def convert_from_wav(wav_path, output_path, target_format=None):
@@ -178,4 +179,5 @@ def convert_from_wav(wav_path, output_path, target_format=None):
     except FileNotFoundError:
         raise RuntimeError("ffmpeg is not installed or not in PATH")
     except subprocess.CalledProcessError as e:
-        raise RuntimeError(f"Failed to convert WAV to {target_format or 'target format'}: {e.stderr.decode()}")
+        stderr_msg = e.stderr.decode('utf-8', errors='replace') if e.stderr else 'Unknown error'
+        raise RuntimeError(f"Failed to convert WAV to {target_format or 'target format'}: {stderr_msg}")
