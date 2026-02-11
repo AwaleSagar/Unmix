@@ -11,9 +11,8 @@ spectrogram, as described in:
 from statistics import median
 
 from ..dsp import (
-    fft,
     hann_window,
-    ifft,
+    istft,
     magnitude,
     phase,
     polar_to_complex,
@@ -116,10 +115,8 @@ def hpss(signal, sample_rate, frame_size=2048, hop_size=512,
         p_frames.append(pf)
 
     # Inverse STFT
-    from ..dsp import istft as _istft  # local import to avoid circular ref
-
     length = len(signal)
-    harmonic_signal = _istft(h_frames, frame_size, hop_size, window, length)
-    percussive_signal = _istft(p_frames, frame_size, hop_size, window, length)
+    harmonic_signal = istft(h_frames, frame_size, hop_size, window, length)
+    percussive_signal = istft(p_frames, frame_size, hop_size, window, length)
 
     return harmonic_signal, percussive_signal

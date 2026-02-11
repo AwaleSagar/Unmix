@@ -16,6 +16,13 @@ def _resolve_output(input_path, suffix, output_dir):
     return os.path.join(output_dir, name)
 
 
+def _ensure_output_dir(args):
+    """Return the output directory, creating it if needed."""
+    out_dir = args.output_dir or os.path.dirname(args.input) or "."
+    os.makedirs(out_dir, exist_ok=True)
+    return out_dir
+
+
 def _load_mono(path):
     """Load a WAV file and return (mono_samples, sample_rate)."""
     channels, sr, nc = read_wav(path)
@@ -46,9 +53,7 @@ def _cmd_hpss(args):
     elapsed = time.time() - t0
     print(f"[unmix]   done in {elapsed:.1f}s")
 
-    out_dir = args.output_dir or os.path.dirname(args.input) or "."
-    os.makedirs(out_dir, exist_ok=True)
-
+    out_dir = _ensure_output_dir(args)
     h_path = _resolve_output(args.input, "harmonic", out_dir)
     p_path = _resolve_output(args.input, "percussive", out_dir)
     write_wav(h_path, [harmonic], sr)
@@ -84,9 +89,7 @@ def _cmd_spectral_sub(args):
     elapsed = time.time() - t0
     print(f"[unmix]   done in {elapsed:.1f}s")
 
-    out_dir = args.output_dir or os.path.dirname(args.input) or "."
-    os.makedirs(out_dir, exist_ok=True)
-
+    out_dir = _ensure_output_dir(args)
     out_path = _resolve_output(args.input, "clean", out_dir)
     write_wav(out_path, [clean], sr)
     print(f"[unmix] Wrote {out_path}")
@@ -112,9 +115,7 @@ def _cmd_rpca(args):
     elapsed = time.time() - t0
     print(f"[unmix]   done in {elapsed:.1f}s")
 
-    out_dir = args.output_dir or os.path.dirname(args.input) or "."
-    os.makedirs(out_dir, exist_ok=True)
-
+    out_dir = _ensure_output_dir(args)
     bg_path = _resolve_output(args.input, "background", out_dir)
     fg_path = _resolve_output(args.input, "foreground", out_dir)
     write_wav(bg_path, [background], sr)

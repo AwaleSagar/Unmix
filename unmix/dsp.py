@@ -91,7 +91,10 @@ def _bluestein(x):
     fa = _fft_radix2(a)
     fb = _fft_radix2(b)
     fc = [fa[i] * fb[i] for i in range(m)]
-    c = ifft(fc)  # safe: m is power-of-two so ifft → _fft_radix2
+    # m is a power of two, so use radix-2 IFFT directly (conjugate trick)
+    conj_fc = [z.conjugate() for z in fc]
+    c_raw = _fft_radix2(conj_fc)
+    c = [z.conjugate() / m for z in c_raw]
 
     return [c[k] * chirp[k] for k in range(n)]
 

@@ -179,10 +179,11 @@ def svd(mat):
 
     U = zeros(m, n)
     Vt = zeros(n, n)
+    eps = 1e-15  # machine-precision guard for division by near-zero
     for j_new, j_old in enumerate(order):
         s = sigma[j_old]
         for i in range(m):
-            U[i][j_new] = A[i][j_old] / s if s > tol else 0.0
+            U[i][j_new] = A[i][j_old] / s if s > eps else 0.0
         for i in range(n):
             Vt[j_new][i] = V[i][j_old]
 
