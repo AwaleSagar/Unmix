@@ -81,8 +81,9 @@ def _load_mono(path):
         temp_wav = convert_to_wav(path)
         wav_path = temp_wav
     else:
+        # Default to 'wav' if format detection failed or it's already WAV
         wav_path = path
-        audio_format = 'wav'
+        audio_format = audio_format or 'wav'
     
     # Load the WAV file
     channels, sr, nc = read_wav(wav_path)

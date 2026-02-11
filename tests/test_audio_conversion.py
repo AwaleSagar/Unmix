@@ -36,16 +36,17 @@ class TestFormatDetection(unittest.TestCase):
 
     def test_detect_mp3_format_by_extension(self):
         # Just test extension-based detection
-        fmt = detect_audio_format("/tmp/test.mp3")
+        # Use a portable path that doesn't need to exist
+        fmt = detect_audio_format(os.path.join(tempfile.gettempdir(), "test.mp3"))
         self.assertEqual(fmt.lower(), "mp3")
 
     def test_detect_flac_format_by_extension(self):
-        fmt = detect_audio_format("/tmp/test.flac")
+        fmt = detect_audio_format(os.path.join(tempfile.gettempdir(), "test.flac"))
         self.assertEqual(fmt.lower(), "flac")
 
     def test_detect_no_extension(self):
         # File doesn't exist, should return None for files without extension
-        fmt = detect_audio_format("/tmp/test_no_ext")
+        fmt = detect_audio_format(os.path.join(tempfile.gettempdir(), "test_no_ext"))
         self.assertIsNone(fmt)
 
 
